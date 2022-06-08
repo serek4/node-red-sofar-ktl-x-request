@@ -1,0 +1,353 @@
+[
+    {
+        "id": "072561a1188f3103",
+        "type": "subflow",
+        "name": "sofar KTL-X request",
+        "info": "TCP modbus request for LSW3 wifi logger  \r\nused with Sofar solar KTL-X inverters\r\n\r\n### Outputs\r\n1. JSON data\r\n: payload (object | buffer | string) : parsed data object, raw buffer if can't decode data or error message.\r\n: topic (string) : `decoded data` | `unknown data` | `unexpected data` | `error`.\r\n: debug (object) : debug data object.\r\n: error (object) : error object if there was an error in tcp request node\r\n\r\n2. raw data\r\n: payload (buffer) : raw data frames.\r\n: topic (string) : `raw request` | `raw response`\r\n\r\n### Details\r\n\r\nDefault logger port:  \r\n`8899`\r\n\r\nLogger SN:  \r\n`17xxxxxxxx`\r\n\r\nDefault first register address in hex:  \r\n`0x0000`\r\n\r\nDefault last register address in hex:  \r\n`0x0027`\r\n\r\n### References\r\n\r\n - [GitHub](https://github.com/serek4/node-red-sofar-ktl-x-request) - the node github repository\r\n",
+        "category": "",
+        "in": [
+            {
+                "x": 120,
+                "y": 240,
+                "wires": [
+                    {
+                        "id": "fc59a9b86be541d3"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 1130,
+                "y": 160,
+                "wires": [
+                    {
+                        "id": "2af8772ff413b097",
+                        "port": 0
+                    },
+                    {
+                        "id": "2264ac720797774c",
+                        "port": 0
+                    }
+                ]
+            },
+            {
+                "x": 1120,
+                "y": 280,
+                "wires": [
+                    {
+                        "id": "fc59a9b86be541d3",
+                        "port": 0
+                    },
+                    {
+                        "id": "41143463e6946012",
+                        "port": 0
+                    }
+                ]
+            }
+        ],
+        "env": [
+            {
+                "name": "loggerIP",
+                "type": "str",
+                "value": "",
+                "ui": {
+                    "icon": "font-awesome/fa-cloud-download",
+                    "label": {
+                        "en-US": "logger IP"
+                    },
+                    "type": "input",
+                    "opts": {
+                        "types": [
+                            "str",
+                            "env"
+                        ]
+                    }
+                }
+            },
+            {
+                "name": "loggerPort",
+                "type": "num",
+                "value": "8899",
+                "ui": {
+                    "icon": "font-awesome/fa-plug",
+                    "label": {
+                        "en-US": "logger port"
+                    },
+                    "type": "spinner",
+                    "opts": {
+                        "min": 1
+                    }
+                }
+            },
+            {
+                "name": "loggerSN",
+                "type": "num",
+                "value": "1700000000",
+                "ui": {
+                    "label": {
+                        "en-US": "logger SN"
+                    },
+                    "type": "spinner",
+                    "opts": {
+                        "min": 1700000000,
+                        "max": 1799999999
+                    }
+                }
+            },
+            {
+                "name": "firstReg",
+                "type": "str",
+                "value": "0x0000",
+                "ui": {
+                    "label": {
+                        "en-US": "first register"
+                    },
+                    "type": "input",
+                    "opts": {
+                        "types": [
+                            "str",
+                            "env"
+                        ]
+                    }
+                }
+            },
+            {
+                "name": "lastReg",
+                "type": "str",
+                "value": "0x0027",
+                "ui": {
+                    "label": {
+                        "en-US": "last register"
+                    },
+                    "type": "input",
+                    "opts": {
+                        "types": [
+                            "str",
+                            "env"
+                        ]
+                    }
+                }
+            }
+        ],
+        "meta": {
+            "version": "0.1.0",
+            "author": "serek4",
+            "desc": "LSW3 wifi stick on sofar KTL-X inverter",
+            "license": "MIT"
+        },
+        "color": "#20c800",
+        "outputLabels": [
+            "JSON data",
+            "raw data"
+        ],
+        "icon": "node-red/bridge.svg",
+        "status": {
+            "x": 720,
+            "y": 40,
+            "wires": [
+                {
+                    "id": "25689a1f1b08d720",
+                    "port": 0
+                }
+            ]
+        }
+    },
+    {
+        "id": "fc59a9b86be541d3",
+        "type": "function",
+        "z": "072561a1188f3103",
+        "name": "request data from inverter",
+        "func": "/** inverter data modbus request data command in hex\n* a5    |1700       |1045|0000|xxxxxxxx|020000000000000000000000000000|0103 0000 0028 xxxx|xx       |15\n* a5    |1700       |1045|0000|xxxxxxxx|020000000000000000000000000000|0103 0105 0010 xxxx|xx       |15\n* begin |data length| 2b | 2b |   SN   |            15b               |   modbus command  |checksum |end\n*/\n\nconst requestNr = flow.get('requestNr') > 255 ? 0 : flow.get('requestNr') || 0;\nconst responseNr = flow.get('responseNr') || 0;\nconst serialNumber = env.get('loggerSN');   // in hex it is 32LE\nconst firstReg = parseInt(env.get('firstReg'), 16);\nconst lastReg = parseInt(env.get('lastReg'), 16);\n\nconst frame = Buffer.alloc(36);\nframe.writeUInt8(0xa5, 0);  // frame begin\nframe.writeUInt16BE(0x1700, 1); // data length\nframe.writeUInt16BE(0x1045, 3); // control code\nframe.writeUInt8(requestNr, 5); // request number\nframe.writeUInt8(responseNr, 6); // server response number\nframe.writeUInt32LE(serialNumber, 7); // logger SN\nframe.write('0200000000000000000000000000', 11, 15, 'hex');  // data 15 bytes\n// modbus command\nframe.writeUInt16BE(0x0103, 26) // get data code\n// 1st register range\nframe.writeUInt16BE(firstReg, 28) // first register\nframe.writeUInt16BE(lastReg - firstReg + 1, 30) // number of registers to read\n// 2nd register range\n// frame.writeUInt16BE(0x0105, 28) // reg start\n// frame.writeUInt16BE(0x0010, 30) // number of registers to read\n// crc\nlet commandCrcModbus = crc16modbus(frame.slice(26, 32)); //! uInt16LE\nframe.writeUInt16LE(commandCrcModbus, 32);  //command crc\n\nframe.writeUInt8(frameChecksum(frame), 34);  //frame checksum\nframe.writeUInt8(0x15, 35);  // frame end\n// node.warn(frame.toString('hex'));\n\nmsg = {\n    payload: frame,\n    topic: 'raw request'\n};\nflow.set('waitingForResponse', true);\nreturn msg;\n\nfunction frameChecksum(frame) {\n    frame = frame.subarray(1, -2);\n    let sum = 0x0;\n    for (const byte of frame) {\n        sum += byte;\n    }\n    sum = sum % 256;\n    return sum;\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "crc16modbus",
+                "module": "crc/mjs/crc16modbus"
+            }
+        ],
+        "x": 340,
+        "y": 240,
+        "wires": [
+            [
+                "750e4979aad7f48f"
+            ]
+        ]
+    },
+    {
+        "id": "750e4979aad7f48f",
+        "type": "tcp request",
+        "z": "072561a1188f3103",
+        "name": "Modbus request",
+        "server": "${loggerIP}",
+        "port": "${loggerPort}",
+        "out": "sit",
+        "ret": "buffer",
+        "splitc": " ",
+        "newline": "",
+        "trim": false,
+        "tls": "",
+        "x": 640,
+        "y": 240,
+        "wires": [
+            [
+                "41143463e6946012",
+                "b36ae6ac1f32590f"
+            ]
+        ]
+    },
+    {
+        "id": "25689a1f1b08d720",
+        "type": "status",
+        "z": "072561a1188f3103",
+        "name": "",
+        "scope": [
+            "750e4979aad7f48f"
+        ],
+        "x": 580,
+        "y": 40,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "41143463e6946012",
+        "type": "change",
+        "z": "072561a1188f3103",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "raw response",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 910,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2af8772ff413b097",
+        "type": "function",
+        "z": "072561a1188f3103",
+        "name": "decode response",
+        "func": "// let waitingForResponse = flow.get('waitingForResponse');\nconst data = decodeData(msg.payload.data); // decode response data\nif (data !== null) {\n    flow.set('waitingForResponse', false);\n    msg.topic = 'decoded data';\n    if (typeof msg.payload.extraData !== 'undefined') {\n        msg.debug.extraData = msg.payload.extraData;\n        // return [[msg, {\n        //     payload: msg.payload.extraData,\n        //     topic: 'extra data'\n        // }]];\n    }\n    msg.payload = data;\n    return msg;\n}\nmsg.payload = msg.payload.data; // decode failed send raw buffer\nif (!flow.get('waitingForResponse')) {\n    msg.topic = 'unexpected data';\n} else {\n    flow.set('waitingForResponse', false);\n    msg.topic = 'unknown data';\n}\nreturn msg;\n\nfunction decodeData(inputBuffer) { // real time data(Function Code 0x03) response\n    const data = {};\n    try {\n        const buffer = inputBuffer.response;\n        const registersDataLength = buffer[2]; // first 3 bytes are slave address, function code, data length\n        const registersBuffer = buffer.subarray(3, 3 + registersDataLength); // registers data begins at 3rd byte\n\n        // inverter status\n        data.inverterStatus = decodeInverterStatus(registersBuffer.readUInt16BE(0x00));\n        //errors\n        data.errors = {};\n        data.errors.fault1 = registersBuffer.readUInt16BE(0x01 * 2);\n        data.errors.fault2 = registersBuffer.readUInt16BE(0x02 * 2);\n        data.errors.fault3 = registersBuffer.readUInt16BE(0x03 * 2);\n        data.errors.fault4 = registersBuffer.readUInt16BE(0x04 * 2);\n        data.errors.fault5 = registersBuffer.readUInt16BE(0x05 * 2);\n\n        //PV Input Message\n        data.PV = {};\n        data.PV.string1 = {};\n        data.PV.string1.voltage = registersBuffer.readUInt16BE(0x06 * 2) / 10;   // V\n        data.PV.string1.current = registersBuffer.readInt16BE(0x07 * 2) / 100;   // A\n        data.PV.string1.power = registersBuffer.readUInt16BE(0x0a * 2) * 10;     // W (/ 100 -> kW)\n        data.PV.string2 = {};\n        data.PV.string2.voltage = registersBuffer.readUInt16BE(0x08 * 2) / 10;   // V\n        data.PV.string2.current = registersBuffer.readInt16BE(0x09 * 2) / 100;   // A\n        data.PV.string2.power = registersBuffer.readUInt16BE(0x0b * 2) * 10;     // W (/ 100 -> kW)\n\n        // Output Grid Message\n        data.grid = {};\n        data.grid.activePower = registersBuffer.readUInt16BE(0x0c * 2) * 10;     // W (/ 100 -> kW)\n        data.grid.reactivePower = registersBuffer.readInt16BE(0x0d * 2) / 100;   // kVar\n        data.grid.frequency = registersBuffer.readUInt16BE(0x0e * 2) / 100;      // Hz\n        data.grid.L1_V = registersBuffer.readUInt16BE(0x0f * 2) / 10;            // V\n        data.grid.L1_A = registersBuffer.readUInt16BE(0x10 * 2) / 100;           // A\n        data.grid.L2_V = registersBuffer.readUInt16BE(0x11 * 2) / 10;            // V\n        data.grid.L2_A = registersBuffer.readUInt16BE(0x12 * 2) / 100;           // A\n        data.grid.L3_V = registersBuffer.readUInt16BE(0x13 * 2) / 10;            // V\n        data.grid.L3_A = registersBuffer.readUInt16BE(0x14 * 2) / 100;           // A\n\n        // Inverter Generation message\n        data.production = {};\n        data.production.TotalEnergy = registersBuffer.readUInt32BE(0x15 * 2);        // kW\n        data.production.TotalTime = registersBuffer.readUInt32BE(0x17 * 2);          // hours\n        data.production.TodayEnergy = registersBuffer.readUInt16BE(0x19 * 2) / 100;  // kW (* 10 -> W)\n        data.production.TodayTime = registersBuffer.readUInt16BE(0x1a * 2);          // minutes\n\n        // Inverter inner message\n        data.info = {};\n        data.info.loggerTemp = registersBuffer.readInt16BE(0x1b * 2);        // °C\n        data.info.inverterTemp = registersBuffer.readInt16BE(0x1c * 2);      // °C\n        data.info.Vbus = registersBuffer.readUInt16BE(0x1d * 2) / 10;        // V\n        data.info.PV1VCPU = registersBuffer.readUInt16BE(0x1e * 2) / 10;     // V\n        data.info.PV1ACPU = registersBuffer.readUInt16BE(0x1f * 2) / 100;    // A\n        data.info.countdownTime = registersBuffer.readUInt16BE(0x20 * 2);    // seconds\n        data.info.inverterAlarmInfo = registersBuffer.readUInt16BE(0x21 * 2);\n        data.info.inputMode = inputModeDecoder(registersBuffer.readUInt16BE(0x22 * 2));\n        data.info.inverterInnerInfo = registersBuffer.readUInt16BE(0x23 * 2);\n        data.info.PV1insulationResistance = registersBuffer.readUInt16BE(0x24 * 2);  // kOhm\n        data.info.PV2insulationResistance = registersBuffer.readUInt16BE(0x25 * 2);   // kOhm\n        data.info.cathode_groundInsulationImpedance = registersBuffer.readUInt16BE(0x26 * 2);  // KOhm\n        data.info.countryCode = registersBuffer.readUInt16BE(0x27 * 2);\n\n        data.timestamp = Math.floor(msg.timestamp / 1000); // reading timestamp in seconds\n    } catch (error) {\n        return null;\n    };\n\n    return data;\n}\n\nfunction decodeInverterStatus(status) {\n    switch (status) {\n        case 0x00:\n            return `standby`;\n        case 0x02:\n            return `normal`;\n        case 0x03:\n            return `fault`;\n        case 0x04:\n            return `permanent`;\n\n        default:\n            return `0x${`0${(status.toString(16))}`.slice(-2)}`;\n    }\n}\n\nfunction inputModeDecoder(mode) {\n    switch (mode) {\n        case 0x00:\n            return 'parallel';\n        case 0x01:\n            return 'independent';\n\n        default:\n            return `0x${`0${(mode.toString(16))}`.slice(-2)}`;\n    }\n}\n\nfunction country(countryCode) {\n\n}\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 890,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "fe207705d8d77038",
+        "type": "function",
+        "z": "072561a1188f3103",
+        "name": "decode header",
+        "func": "if (typeof msg.debug === 'undefined') msg.debug = {};\nmsg.debug.header = decodeHeader(msg.payload.header);\nflow.set('requestNr', (msg.debug.header.requestNr >= 255) ? 1 : (msg.debug.header.requestNr + 1));\nflow.set('responseNr', msg.debug.header.responseNr);\nreturn msg;\n\nfunction decodeHeader(buffer) {\n    const header = {};\n    header.dataLength = buffer.readUInt16LE(1);\n    header.requestNr = buffer.readUInt8(5);\n    header.responseNr = buffer.readUInt8(6);\n    header.loggerSN = buffer.readUInt32LE(7);\n    return header;\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 160,
+        "wires": [
+            [
+                "2af8772ff413b097"
+            ]
+        ]
+    },
+    {
+        "id": "b36ae6ac1f32590f",
+        "type": "function",
+        "z": "072561a1188f3103",
+        "name": "check frame",
+        "func": "msg.payload = checkFrame(msg.payload);\nmsg.debug = {};\nmsg.debug.frame = msg.payload;\nmsg.topic = 'frame';\nmsg.timestamp = Date.now(); // timestamp in ms\nreturn msg;\n\nfunction checkFrame(frameBuffer) {\n    const frame = {};\n    const headerSize = 11;\n    const footerSize = 2;\n    const frameDataLength = frameBuffer.readUInt16LE(1);\n    const calculatedLength = headerSize + frameDataLength + footerSize;\n    if (frameBuffer.length !== calculatedLength) {\n        if (frameBuffer[calculatedLength - 1] === 0x15) {\n            frame.length = calculatedLength;\n            frame.extraData = frameBuffer.subarray(calculatedLength + 1);\n        } else {\n            frame.length = frameBuffer.length;\n        }\n    } else {\n        frame.length = calculatedLength;\n    }\n    frame.isValidV5frame = frameBuffer[0] === 0xA5 && frameBuffer[frame.length - 1] === 0x15;\n    frame.buffer = frameBuffer;\n\n    frame.header = frameBuffer.subarray(0, 11);\n\n    if (frameDataLength > 14) {\n        frame.data = {};\n        const data = frameBuffer.subarray(headerSize, headerSize + frameDataLength);\n        frame.data.unknown = data.subarray(0, 14); //TODO figure out what those 14 bytes are\n        const response = data.subarray(14);\n        frame.data.response = response;\n        if (response.length > 3) {\n            const registersDataLength = response[2]; // first 3 bytes are: slave address, function code, data length\n            const calculatedCrc = crc16modbus(response.subarray(0, 3 + registersDataLength));\n            const crc = response.readUInt16LE(3 + registersDataLength);\n            frame.data.responseCrc = calculatedCrc === crc ? 'OK' : 'mismatch';\n        }\n    } else {\n        frame.data = frameBuffer.subarray(headerSize, headerSize + frameDataLength);\n    }\n\n    frame.footer = frameBuffer.subarray(frame.length - 2, frame.length);\n\n    const calculatedChecksum = frameChecksum(frameBuffer);\n    const checksum = frameBuffer.readUInt8(headerSize + frameDataLength);\n    frame.frameChecksum = calculatedChecksum === checksum ? 'OK' : 'mismatch';\n\n    frame.timestamp = Math.floor(Date.now() / 1000); // unixtimestamp in seconds\n    return frame;\n}\n\nfunction frameChecksum(frame) {\n    frame = frame.subarray(1, -2);\n    let sum = 0x0;\n    for (const byte of frame) {\n        sum += byte;\n    }\n    sum = sum % 256;\n    return sum;\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "crc16modbus",
+                "module": "crc/mjs/crc16modbus"
+            }
+        ],
+        "x": 410,
+        "y": 160,
+        "wires": [
+            [
+                "fe207705d8d77038"
+            ]
+        ],
+        "outputLabels": [
+            "data"
+        ]
+    },
+    {
+        "id": "2264ac720797774c",
+        "type": "change",
+        "z": "072561a1188f3103",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "error.message",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "error",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 900,
+        "y": 200,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a69591f381e80034",
+        "type": "catch",
+        "z": "072561a1188f3103",
+        "name": "modbus request errors",
+        "scope": [
+            "750e4979aad7f48f"
+        ],
+        "uncaught": false,
+        "x": 620,
+        "y": 200,
+        "wires": [
+            [
+                "2264ac720797774c"
+            ]
+        ]
+    }
+]
