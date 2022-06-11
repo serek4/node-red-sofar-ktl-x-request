@@ -79,3 +79,13 @@ modbus communication based on [MichaluxPL](https://github.com/MichaluxPL)/[Sofar
   ```
   - there is  msg.debug property with additional frame info.
 - on second output are raw buffers sent to/from inverter.
+
+# frames diagrams
+
+request frame
+
+![response frame diagram](images/LSW3-request-frame.svg)
+
+response frame
+
+![response frame diagram](images/LSW3-response-frame.svg)
