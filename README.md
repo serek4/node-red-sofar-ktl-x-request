@@ -6,7 +6,7 @@ connected to sofar 4.4 KTL-X inverter.
 modbus communication based on [MichaluxPL](https://github.com/MichaluxPL)/[Sofar_LSW3](https://github.com/MichaluxPL/Sofar_LSW3) python script.
 
 ## requirements
-  - node-red 2.0 (minimum 2.0.1)
+  - node-red 3.0
   - [crc module](https://www.npmjs.com/package/crc) (node-red should download and install it on first node deploy)
   - (optional) [node-red-contrib-sun-position](https://flows.nodered.org/node/node-red-contrib-sun-position) node-red library
 

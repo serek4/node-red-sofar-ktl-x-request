@@ -166,7 +166,7 @@
         "libs": [
             {
                 "var": "crc16modbus",
-                "module": "crc/mjs/crc16modbus"
+                "module": "crc/crc16modbus"
             }
         ],
         "x": 340,
@@ -287,7 +287,7 @@
         "libs": [
             {
                 "var": "crc16modbus",
-                "module": "crc/mjs/crc16modbus"
+                "module": "crc/crc16modbus"
             }
         ],
         "x": 410,
