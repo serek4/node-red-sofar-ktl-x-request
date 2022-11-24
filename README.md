@@ -20,72 +20,74 @@ modbus communication based on [MichaluxPL](https://github.com/MichaluxPL)/[Sofar
   - to request data only between sunrise and sunset i'm using [`time-inject` node](https://github.com/rdmtc/node-red-contrib-sun-position/wiki/time-inject)  
   from [node-red-contrib-sun-position](https://flows.nodered.org/node/node-red-contrib-sun-position) node-red library.
 - decoded data from inverter will be on first output.
-  ```javascript
-  {
-    "inverterStatus": "normal",
-    "errors": {
-        "fault1": 0,
-        "fault2": 0,
-        "fault3": 0,
-        "fault4": 0,
-        "fault5": 0
-    },
-    "PV": {
-        "string1": {
-            "voltage": 455.1,
-            "current": 2.74,
-            "power": 1240
-        },
-        "string2": {
-            "voltage": 79.1,
-            "current": 0,
-            "power": 0
-        }
-    },
-    "grid": {
-        "activePower": 1180,
-        "reactivePower": -0.63,
-        "frequency": 49.99,
-        "L1_V": 233,
-        "L1_A": 1.97,
-        "L2_V": 228.6,
-        "L2_A": 1.97,
-        "L3_V": 227.6,
-        "L3_A": 1.96
-    },
-    "production": {
-        "TotalEnergy": 6333,
-        "TotalTime": 5856,
-        "TodayEnergy": 9.67,
-        "TodayTime": 576
-    },
-    "info": {
-        "loggerTemp": 33,
-        "inverterTemp": 47,
-        "Vbus": 634.2,
-        "PV1VCPU": 455.2,
-        "PV1ACPU": 8.07,
-        "countdownTime": 60,
-        "inverterAlarmInfo": 0,
-        "inputMode": "independent",
-        "inverterInnerInfo": 0,
-        "PV1insulationResistance": 1212,
-        "PV2insulationResistance": 2263,
-        "cathode_groundInsulationImpedance": 1856,
-        "countryCode": 12
-    },
-    "timestamp": 1654692048
-  }
-  ```
-  - there is  msg.debug property with additional frame info.
+```javascript
+{
+  "inverterStatus": "normal",
+  "errors": {
+      "fault1": 0,
+      "fault2": 0,
+      "fault3": 0,
+      "fault4": 0,
+      "fault5": 0
+  },
+  "PV": {
+      "string1": {
+          "voltage": 455.1,
+          "current": 2.74,
+          "power": 1240
+      },
+      "string2": {
+          "voltage": 79.1,
+          "current": 0,
+          "power": 0
+      }
+  },
+  "grid": {
+      "activePower": 1180,
+      "reactivePower": -0.63,
+      "frequency": 49.99,
+      "L1_V": 233,
+      "L1_A": 1.97,
+      "L2_V": 228.6,
+      "L2_A": 1.97,
+      "L3_V": 227.6,
+      "L3_A": 1.96
+  },
+  "production": {
+      "TotalEnergy": 6333,
+      "TotalTime": 5856,
+      "TodayEnergy": 9.67,
+      "TodayTime": 576
+  },
+  "info": {
+      "loggerTemp": 33,
+      "inverterTemp": 47,
+      "Vbus": 634.2,
+      "PV1VCPU": 455.2,
+      "PV1ACPU": 8.07,
+      "countdownTime": 60,
+      "inverterAlarmInfo": 0,
+      "inputMode": "independent",
+      "inverterInnerInfo": 0,
+      "PV1insulationResistance": 1212,
+      "PV2insulationResistance": 2263,
+      "cathode_groundInsulationImpedance": 1856,
+      "countryCode": 12
+  },
+  "loggerInfo": {
+      "frameType": 2,
+      "dataType": 1,
+      "totalWorkingTime": 29545856,
+      "powerOnTime": 674,
+      "offsetTime": 1638195252,
+      "totalOperationTime": 29545182
+  },
+  "timestamp": 1667741108
+}
+```
+- there is msg.debug property with additional frame info.
 - on second output are raw buffers sent to/from inverter.
 
-# frames diagrams
+# data frame diagram
 
-request frame
-
-![response frame diagram](images/LSW3-request-frame.svg)
-
-response frame
-
-![response frame diagram](images/LSW3-response-frame.svg)
+![data frame diagram](images/LSW3-data-frame.svg)
