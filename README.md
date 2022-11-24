@@ -72,7 +72,7 @@ modbus communication based on [MichaluxPL](https://github.com/MichaluxPL)/[Sofar
       "PV1insulationResistance": 1212,
       "PV2insulationResistance": 2263,
       "cathode_groundInsulationImpedance": 1856,
-      "countryCode": 12
+      "country": "Poland"
   },
   "loggerInfo": {
       "frameType": 2,
