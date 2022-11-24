@@ -23,13 +23,10 @@ modbus communication based on [MichaluxPL](https://github.com/MichaluxPL)/[Sofar
 ```javascript
 {
   "inverterStatus": "normal",
-  "errors": {
-      "fault1": 0,
-      "fault2": 0,
-      "fault3": 0,
-      "fault4": 0,
-      "fault5": 0
-  },
+  "errors": [
+    "ID02 - GridUVP(grid under voltage protection)",
+    "ID04 - GridUFP(grid under frequency protection)"
+  ],
   "PV": {
       "string1": {
           "voltage": 455.1,
