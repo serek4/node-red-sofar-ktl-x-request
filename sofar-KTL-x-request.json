@@ -131,7 +131,7 @@
             }
         ],
         "meta": {
-            "version": "0.3.0",
+            "version": "0.4.0",
             "author": "serek4",
             "desc": "sofar KTL-X inverter with LSW3 wifi stick",
             "license": "MIT"
