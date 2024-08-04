@@ -3,7 +3,7 @@
         "id": "072561a1188f3103",
         "type": "subflow",
         "name": "sofar KTL-X request",
-        "info": "TCP modbus request for LSW3 wifi logger  \r\nused with Sofar solar KTL-X inverters\r\n\r\n### Outputs\r\n1. JSON data\r\n: payload (object | buffer | string) : parsed data object, raw buffer if can't decode data or error message.\r\n: topic (string) : `decoded data` | `unknown data` | `unexpected data` | `error`.\r\n: debug (object) : debug data object.\r\n: error (object) : error object if there was an error in tcp request node\r\n\r\n2. raw data\r\n: payload (buffer) : raw data frames.\r\n: topic (string) : `raw request` | `raw response`\r\n\r\n### Details\r\n\r\nDefault logger port:  \r\n`8899`\r\n\r\nLogger SN:  \r\n`17xxxxxxxx`\r\n\r\nDefault first register address in hex:  \r\n`0x0000`\r\n\r\nDefault last register address in hex:  \r\n`0x0027`\r\n\r\n### References\r\n\r\n - [GitHub](https://github.com/serek4/node-red-sofar-ktl-x-request) - the node github repository\r\n",
+        "info": "TCP modbus request for LSW3 wifi logger  \r\nused with Sofar solar KTL-X inverters\r\n\r\n### Outputs\r\n1. JSON data\r\n: payload (object | buffer | string) : parsed data object, raw buffer if can't decode data or error message.\r\n: topic (string) : `decoded data` | `unknown data` | `unexpected data` | `error`.\r\n: debug (object) : debug data object.\r\n: error (object) : error object if there was an error in tcp request node\r\n\r\n2. raw data\r\n: payload (buffer) : raw data frames.\r\n: topic (string) : `raw request` | `raw response`\r\n\r\n### Details\r\n\r\nDefault logger port:  \r\n`8899`\r\n\r\nLogger SN:  \r\n`17xxxxxxxx`\r\n\r\nDefault first register address in hex:  \r\n`0x0000`\r\n\r\nDefault last register address in hex:  \r\n`0x0027`\r\n\r\nDefault log level:  \r\n`warning`\r\n\r\n### References\r\n\r\n - [GitHub](https://github.com/serek4/node-red-sofar-ktl-x-request) - the node github repository\r\n",
         "category": "",
         "in": [
             {
@@ -170,7 +170,7 @@
             }
         ],
         "meta": {
-            "version": "0.5.0",
+            "version": "0.6.0",
             "author": "serek4",
             "desc": "sofar KTL-X inverter with LSW3 wifi stick",
             "license": "MIT"
